@@ -3,161 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Khám Phá Tiệm Cận Đồ Thị Hàm Số</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+      // Support Dark Mode
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+      tailwind.config = {
+        darkMode: 'class',
+      }
+    </script>
     <style>
         body {
             font-family: 'Be Vietnam Pro', sans-serif;
         }
         .info-card {
-            background-color: #f8fafc; /* gray-50 */
-            border-left: 4px solid #3b82f6; /* blue-500 */
+            background-color: #f8fafc;
+            border-left: 4px solid #3b82f6;
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
+            transition: background-color 0.3s;
         }
+        .dark .info-card {
+            background-color: #1e293b; /* slate-800 */
+            border-left-color: #60a5fa; /* blue-400 */
+        }
+        /* Switch toggle */
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2563eb; }
+        input:checked + .slider:before { transform: translateX(26px); }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
     <div class="container mx-auto p-4 lg:p-6">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl lg:text-4xl font-bold text-blue-600">Bài Học Tương Tác: Tiệm Cận Đồ Thị Hàm Số</h1>
-            <p class="text-gray-600 mt-2">Nhập hàm số y = f(x) để vẽ đồ thị và tìm các đường tiệm cận.</p>
+        <header class="text-center mb-6 relative">
+            <h1 class="text-3xl lg:text-4xl font-bold text-blue-600 dark:text-blue-400">Bài Học Tương Tác: Tiệm Cận Đồ Thị Hàm Số</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">Nhập hàm số, sau đó kéo và cuộn chuột trên đồ thị để tương tác.</p>
+            <div class="absolute top-0 right-0 flex items-center space-x-2">
+                <span class="text-sm font-medium">Sáng</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="text-sm font-medium">Tối</span>
+            </div>
         </header>
 
         <main class="flex flex-col lg:flex-row gap-6" style="min-height: 75vh;">
             <!-- Cột Trái: Trực Quan Hóa Đồ Thị -->
-            <div class="lg:w-2/3 w-full bg-white rounded-lg shadow-lg p-4 flex flex-col items-center justify-center">
+            <div class="lg:w-2/3 w-full bg-white dark:bg-slate-800 rounded-lg shadow-lg p-4 flex flex-col items-center justify-center relative">
                 <canvas id="graphCanvas" class="w-full h-full rounded-md"></canvas>
+                <!-- Chú thích (Legend) -->
+                <div id="legend" class="absolute top-2 left-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-3 rounded-lg shadow-md text-sm">
+                    <h4 class="font-bold mb-2">Chú thích</h4>
+                    <div class="flex items-center space-x-2"><div class="w-4 h-1 bg-[#007bff] rounded-full"></div><span>Đồ thị f(x)</span></div>
+                    <div class="flex items-center space-x-2 mt-1"><div class="w-4 h-1 bg-[#ef4444] border-b-2 border-dashed border-[#ef4444]"></div><span>Tiệm cận đứng</span></div>
+                    <div class="flex items-center space-x-2 mt-1"><div class="w-4 h-1 bg-[#22c55e] border-b-2 border-dashed border-[#22c55e]"></div><span>Tiệm cận ngang</span></div>
+                    <div class="flex items-center space-x-2 mt-1"><div class="w-4 h-1 bg-[#a855f7] border-b-2 border-dashed border-[#a855f7]"></div><span>Tiệm cận xiên</span></div>
+                </div>
+                <!-- Nút Reset View -->
+                 <button id="resetViewBtn" title="Reset View" class="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
+                </button>
             </div>
 
             <!-- Cột Phải: Điều Khiển và Thông Tin -->
             <div class="lg:w-1/3 w-full flex flex-col gap-4">
-                <div class="bg-white rounded-lg shadow-lg p-5">
-                    <h2 class="text-xl font-bold mb-3 text-blue-700">Bảng Điều Khiển</h2>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-5">
+                    <h2 class="text-xl font-bold mb-3 text-blue-700 dark:text-blue-400">Bảng Điều Khiển</h2>
                     
-                    <!-- Nhập hàm số -->
                     <div class="mb-4">
                         <label for="functionInput" class="block font-semibold mb-2">Nhập hàm số y = f(x)</label>
                         <div class="flex items-center">
-                            <span class="bg-gray-200 p-2 rounded-l-md">y =</span>
-                            <input type="text" id="functionInput" placeholder="(2*x + 1) / (x - 1)" class="w-full p-2 border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            <span class="bg-gray-200 dark:bg-slate-700 p-2 rounded-l-md border-y border-l border-gray-300 dark:border-slate-600">y =</span>
+                            <input type="text" id="functionInput" placeholder="(2*x + 1) / (x - 1)" class="w-full p-2 border border-gray-300 rounded-r-md dark:bg-slate-900 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                         </div>
                     </div>
                     
-                    <!-- Các nút ví dụ -->
                     <div class="mb-4">
                          <p class="font-semibold mb-2">Hoặc chọn ví dụ:</p>
                          <div class="grid grid-cols-2 gap-2">
-                             <button id="example1" class="bg-blue-100 text-blue-800 text-sm p-2 rounded-md hover:bg-blue-200 transition">y = (2x-3)/(x+1)</button>
-                             <button id="example2" class="bg-blue-100 text-blue-800 text-sm p-2 rounded-md hover:bg-blue-200 transition">y = (x²-3x+2)/(x-1)</button>
-                             <button id="example3" class="bg-blue-100 text-blue-800 text-sm p-2 rounded-md hover:bg-blue-200 transition">y = (x-2)/(x²-1)</button>
-                             <button id="example4" class="bg-blue-100 text-blue-800 text-sm p-2 rounded-md hover:bg-blue-200 transition">y = (x²+x)/(x-1)</button>
+                             <button id="example1" class="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-sm p-2 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900 transition">y = (2x-3)/(x+1)</button>
+                             <button id="example2" class="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-sm p-2 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900 transition">y = (x²-3x+2)/(x-1)</button>
+                             <button id="example3" class="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-sm p-2 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900 transition">y = (x-2)/(x²-1)</button>
+                             <button id="example4" class="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-sm p-2 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900 transition">y = (x²+x)/(x-1)</button>
                          </div>
                     </div>
 
-                    <!-- Nút Vẽ -->
-                    <button id="drawButton" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 shadow-md">
+                    <button id="drawButton" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 shadow-md dark:shadow-blue-500/30">
                         Vẽ Đồ Thị & Tìm Tiệm Cận
                     </button>
-                    
-                    <!-- Nút WolframAlpha -->
-                    <button id="wolframButton" class="mt-2 w-full bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-300 shadow-md">
+                    <button id="wolframButton" class="mt-2 w-full bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-300 shadow-md dark:shadow-orange-500/30">
                         Tra cứu với WolframAlpha
                     </button>
                     
-                    <!-- Tùy chọn hiển thị -->
                     <div class="mt-4 space-y-2">
                         <h3 class="font-semibold">Tùy chọn hiển thị:</h3>
-                        <label class="flex items-center">
-                            <input type="checkbox" id="showVertical" class="form-checkbox h-5 w-5 text-blue-600" checked>
-                            <span class="ml-2 text-gray-700">Tiệm cận đứng</span>
-                        </label>
-                         <label class="flex items-center">
-                            <input type="checkbox" id="showHorizontal" class="form-checkbox h-5 w-5 text-green-600" checked>
-                            <span class="ml-2 text-gray-700">Tiệm cận ngang</span>
-                        </label>
-                         <label class="flex items-center">
-                            <input type="checkbox" id="showSlant" class="form-checkbox h-5 w-5 text-purple-600" checked>
-                            <span class="ml-2 text-gray-700">Tiệm cận xiên</span>
-                        </label>
+                        <label class="flex items-center"><input type="checkbox" id="showVertical" class="form-checkbox h-5 w-5 text-blue-600" checked><span class="ml-2">Tiệm cận đứng</span></label>
+                        <label class="flex items-center"><input type="checkbox" id="showHorizontal" class="form-checkbox h-5 w-5 text-green-600" checked><span class="ml-2">Tiệm cận ngang</span></label>
+                        <label class="flex items-center"><input type="checkbox" id="showSlant" class="form-checkbox h-5 w-5 text-purple-600" checked><span class="ml-2">Tiệm cận xiên</span></label>
                     </div>
                 </div>
                 
-                <!-- Kết quả -->
-                <div class="bg-white rounded-lg shadow-lg p-5 flex-grow">
-                    <h2 class="text-xl font-bold mb-3 text-blue-700">Kết Quả Phân Tích</h2>
-                    <div id="results" class="space-y-2 text-md">
-                        <p class="text-gray-500">Nhập hàm số và nhấn vẽ để xem kết quả.</p>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-5 flex-grow">
+                    <h2 class="text-xl font-bold mb-3 text-blue-700 dark:text-blue-400">Kết Quả Phân Tích</h2>
+                    <div id="results" class="space-y-3 text-md">
+                        <p class="text-gray-500 dark:text-gray-400">Nhập hàm số và nhấn vẽ để xem kết quả.</p>
                     </div>
                 </div>
             </div>
         </main>
         
-        <!-- Phần hướng dẫn -->
-        <footer class="mt-6 bg-white rounded-lg shadow-lg p-6">
-            <h2 class="text-2xl font-bold mb-4 text-blue-700">Lý Thuyết & Mẹo Tính Nhanh</h2>
+        <footer class="mt-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4 text-blue-700 dark:text-blue-400">Lý Thuyết & Mẹo Tính Nhanh</h2>
             <div class="grid md:grid-cols-3 gap-6">
-                <div class="info-card">
-                    <h3 class="font-bold text-lg mb-2">Tiệm Cận Đứng (TCĐ)</h3>
-                    <p>Đường thẳng <code class="bg-gray-200 p-1 rounded">x = x₀</code> là TCĐ nếu ít nhất một trong các điều kiện sau được thỏa mãn:</p>
-                    <ul class="list-disc list-inside mt-1 text-sm">
-                        <li>lim (x→x₀⁺) f(x) = ±∞</li>
-                        <li>lim (x→x₀⁻) f(x) = ±∞</li>
-                    </ul>
-                    <p class="mt-2 text-sm"><b>Mẹo:</b> Nghiệm của mẫu số không là nghiệm của tử số thường là tiệm cận đứng.</p>
-                </div>
-                <div class="info-card">
-                    <h3 class="font-bold text-lg mb-2">Tiệm Cận Ngang (TCN)</h3>
-                    <p>Đường thẳng <code class="bg-gray-200 p-1 rounded">y = y₀</code> là TCN nếu:</p>
-                     <ul class="list-disc list-inside mt-1 text-sm">
-                        <li>lim (x→+∞) f(x) = y₀</li>
-                        <li>hoặc lim (x→-∞) f(x) = y₀</li>
-                    </ul>
-                    <p class="mt-2 text-sm"><b>Mẹo:</b> So sánh bậc của tử và mẫu. Nếu bậc tử < bậc mẫu → TCN y=0. Bậc tử = bậc mẫu → TCN y=a/b (tỉ số hệ số cao nhất).</p>
-                </div>
-                <div class="info-card">
-                    <h3 class="font-bold text-lg mb-2">Tiệm Cận Xiên (TCX)</h3>
-                    <p>Đường thẳng <code class="bg-gray-200 p-1 rounded">y = ax + b</code> là TCX nếu:</p>
-                     <ul class="list-disc list-inside mt-1 text-sm">
-                        <li>a = lim (x→∞) [f(x)/x]</li>
-                        <li>b = lim (x→∞) [f(x) - ax]</li>
-                    </ul>
-                     <p class="mt-2 text-sm"><b>Mẹo:</b> Chỉ xuất hiện khi bậc của tử lớn hơn bậc của mẫu đúng 1 bậc. Có thể tìm bằng cách chia đa thức.</p>
-                </div>
+                <div class="info-card"><h3 class="font-bold text-lg mb-2">Tiệm Cận Đứng (TCĐ)</h3><p>Đường thẳng <code class="bg-gray-200 dark:bg-slate-700 p-1 rounded">x = x₀</code> là TCĐ nếu lim (x→x₀⁺/⁻) f(x) = ±∞.</p><p class="mt-2 text-sm"><b>Mẹo:</b> Nghiệm của mẫu số không là nghiệm của tử số thường là tiệm cận đứng.</p></div>
+                <div class="info-card"><h3 class="font-bold text-lg mb-2">Tiệm Cận Ngang (TCN)</h3><p>Đường thẳng <code class="bg-gray-200 dark:bg-slate-700 p-1 rounded">y = y₀</code> là TCN nếu lim (x→±∞) f(x) = y₀.</p><p class="mt-2 text-sm"><b>Mẹo:</b> So sánh bậc của tử và mẫu. Bậc tử = bậc mẫu → TCN y=a/b.</p></div>
+                <div class="info-card"><h3 class="font-bold text-lg mb-2">Tiệm Cận Xiên (TCX)</h3><p>Đường thẳng <code class="bg-gray-200 dark:bg-slate-700 p-1 rounded">y = ax + b</code> là TCX khi bậc tử > bậc mẫu đúng 1 bậc.</p><p class="mt-2 text-sm"><b>Mẹo:</b> Lấy tử chia cho mẫu để tìm y = ax + b.</p></div>
             </div>
         </footer>
     </div>
     
     <script>
         window.addEventListener('load', () => {
+            // ... (Phần lớn mã JS giữ nguyên, chỉ thêm và chỉnh sửa một số phần)
             const canvas = document.getElementById('graphCanvas');
             const ctx = canvas.getContext('2d');
             const functionInput = document.getElementById('functionInput');
             const drawButton = document.getElementById('drawButton');
             const resultsDiv = document.getElementById('results');
             const wolframButton = document.getElementById('wolframButton');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const resetViewBtn = document.getElementById('resetViewBtn');
             
-            // Example Buttons
             const example1Btn = document.getElementById('example1');
             const example2Btn = document.getElementById('example2');
             const example3Btn = document.getElementById('example3');
             const example4Btn = document.getElementById('example4');
 
-            // Checkboxes
             const showVerticalCheck = document.getElementById('showVertical');
             const showHorizontalCheck = document.getElementById('showHorizontal');
             const showSlantCheck = document.getElementById('showSlant');
 
-            let scale = 40; // pixels per unit
+            let scale = 40;
             let originX, originY;
+            let initialOriginX, initialOriginY; // To store initial state for reset
             let func = null;
             let asymptotes = {};
+            let highlightedAsymptote = null;
             
-            // Resize canvas to fit container
+            let isDragging = false;
+            let lastMouseX, lastMouseY;
+            canvas.style.cursor = 'grab';
+
             function resizeCanvas() {
                 const container = canvas.parentElement;
                 const dpr = window.devicePixelRatio || 1;
@@ -168,65 +177,65 @@
                 canvas.style.width = `${rect.width}px`;
                 canvas.style.height = `${rect.height}px`;
 
-                originX = rect.width / 2;
-                originY = rect.height / 2;
+                // Set initial origin only once or on reset
+                if (!initialOriginX) {
+                    initialOriginX = rect.width / 2;
+                    initialOriginY = rect.height / 2;
+                    resetView();
+                }
             }
 
-            // Main draw function
+            function resetView() {
+                originX = initialOriginX;
+                originY = initialOriginY;
+                scale = 40;
+                draw();
+            }
+
             function draw() {
                 if (!ctx) return;
                 
+                const isDark = document.documentElement.classList.contains('dark');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                drawAxes();
+                drawAxes(isDark);
                 
                 if (asymptotes.vertical && showVerticalCheck.checked) {
-                    drawVerticalAsymptotes(asymptotes.vertical);
+                    drawVerticalAsymptotes(asymptotes.vertical, isDark);
                 }
                 if (asymptotes.horizontal !== undefined && showHorizontalCheck.checked) {
-                    drawHorizontalAsymptote(asymptotes.horizontal);
+                    drawHorizontalAsymptote(asymptotes.horizontal, isDark);
                 }
                 if (asymptotes.slant && showSlantCheck.checked) {
-                    drawSlantAsymptote(asymptotes.slant);
+                    drawSlantAsymptote(asymptotes.slant, isDark);
                 }
                 if (func) {
                     drawFunction(func);
                 }
             }
 
-            function drawAxes() {
-                ctx.strokeStyle = '#ccc';
+            function drawAxes(isDark) {
+                ctx.strokeStyle = isDark ? '#475569' : '#ccc'; // slate-600 or gray-300
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                // X-axis
-                ctx.moveTo(0, originY);
-                ctx.lineTo(canvas.width, originY);
-                // Y-axis
-                ctx.moveTo(originX, 0);
-                ctx.lineTo(originX, canvas.height);
+                ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY);
+                ctx.moveTo(originX, 0); ctx.lineTo(originX, canvas.height);
                 ctx.stroke();
 
-                // Ticks and labels
-                ctx.fillStyle = '#999';
-                ctx.font = '12px Be Vietnam Pro';
+                ctx.fillStyle = isDark ? '#94a3b8' : '#999'; // slate-400 or gray-400
+                ctx.font = '14px Be Vietnam Pro'; // Increased font size
                 // X-axis ticks
                 for (let i = Math.floor(-originX / scale); i <= Math.floor((canvas.width - originX) / scale); i++) {
                     if (i === 0) continue;
                     const x = originX + i * scale;
-                    ctx.beginPath();
-                    ctx.moveTo(x, originY - 5);
-                    ctx.lineTo(x, originY + 5);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x, originY - 5); ctx.lineTo(x, originY + 5); ctx.stroke();
                     ctx.fillText(i, x - 5, originY + 20);
                 }
                 // Y-axis ticks
                 for (let i = Math.floor(-originY / scale); i <= Math.floor((canvas.height - originY) / scale); i++) {
                      if (i === 0) continue;
                     const y = originY - i * scale;
-                    ctx.beginPath();
-                    ctx.moveTo(originX - 5, y);
-                    ctx.lineTo(originX + 5, y);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(originX - 5, y); ctx.lineTo(originX + 5, y); ctx.stroke();
                     if (i !== 0) ctx.fillText(i, originX + 10, y + 5);
                 }
                 ctx.fillText('0', originX - 15, originY + 15);
@@ -234,94 +243,75 @@
             
             function drawFunction(fn) {
                 ctx.strokeStyle = '#007bff';
-                ctx.lineWidth = 2.5;
+                ctx.lineWidth = 3; // Thicker line
                 let lastY = null;
 
                 ctx.beginPath(); 
 
                 for (let px = 0; px <= canvas.width; px++) {
                     const x = (px - originX) / scale;
-                    let y;
-                    try {
-                        y = fn(x);
-                    } catch(e) {
-                        lastY = null;
-                        continue;
-                    }
+                    let y; try { y = fn(x); } catch(e) { lastY = null; continue; }
 
                     if (isFinite(y)) {
                         const py = originY - y * scale;
-                        if (lastY !== null && Math.abs(py - lastY) < canvas.height / 2) { 
-                            ctx.lineTo(px, py);
-                        } else {
-                            ctx.moveTo(px, py);
-                        }
+                        if (lastY !== null && Math.abs(py - lastY) < canvas.height) { ctx.lineTo(px, py); } 
+                        else { ctx.moveTo(px, py); }
                         lastY = py;
-                    } else {
-                         lastY = null;
-                    }
+                    } else { lastY = null; }
                 }
                 ctx.stroke();
             }
 
-            function drawVerticalAsymptotes(vas) {
-                ctx.strokeStyle = '#ef4444'; // red-500
-                ctx.lineWidth = 1.5;
-                ctx.setLineDash([5, 5]);
+            function drawVerticalAsymptotes(vas, isDark) {
                 vas.forEach(x0 => {
-                    const px = originX + x0 * scale;
-                    ctx.beginPath();
-                    ctx.moveTo(px, 0);
-                    ctx.lineTo(px, canvas.height);
-                    ctx.stroke();
+                    const isHighlighted = highlightedAsymptote && highlightedAsymptote.type === 'vertical' && highlightedAsymptote.value === x0;
+                    ctx.strokeStyle = isHighlighted ? '#f87171' : '#ef4444'; // brighter red if highlighted
+                    ctx.lineWidth = isHighlighted ? 4 : 2; // thicker if highlighted
+                    ctx.setLineDash([6, 6]);
                     
-                    ctx.fillStyle = '#ef4444';
-                    ctx.font = '14px Be Vietnam Pro';
-                    ctx.fillText(`x = ${x0}`, px + 5, 20);
+                    const px = originX + x0 * scale;
+                    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, canvas.height); ctx.stroke();
+                    
+                    ctx.fillStyle = isHighlighted ? (isDark ? '#f87171' : '#dc2626') : (isDark ? '#ef4444' : '#b91c1c');
+                    ctx.font = isHighlighted ? 'bold 16px Be Vietnam Pro' : '15px Be Vietnam Pro';
+                    ctx.fillText(`x = ${x0}`, px + 8, 25);
                 });
                 ctx.setLineDash([]);
             }
 
-            function drawHorizontalAsymptote(y0) {
-                ctx.strokeStyle = '#22c55e'; // green-500
-                ctx.lineWidth = 1.5;
-                ctx.setLineDash([5, 5]);
+            function drawHorizontalAsymptote(y0, isDark) {
+                const isHighlighted = highlightedAsymptote && highlightedAsymptote.type === 'horizontal';
+                ctx.strokeStyle = isHighlighted ? '#4ade80' : '#22c55e'; // brighter green
+                ctx.lineWidth = isHighlighted ? 4 : 2;
+                ctx.setLineDash([6, 6]);
+
                 const py = originY - y0 * scale;
-                ctx.beginPath();
-                ctx.moveTo(0, py);
-                ctx.lineTo(canvas.width, py);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(canvas.width, py); ctx.stroke();
                 
-                ctx.fillStyle = '#22c55e';
-                ctx.font = '14px Be Vietnam Pro';
-                ctx.fillText(`y = ${y0.toFixed(2)}`, 10, py - 10);
+                ctx.fillStyle = isHighlighted ? (isDark ? '#4ade80' : '#16a34a') : (isDark ? '#22c55e' : '#15803d');
+                ctx.font = isHighlighted ? 'bold 16px Be Vietnam Pro' : '15px Be Vietnam Pro';
+                ctx.fillText(`y = ${y0.toFixed(2)}`, 15, py - 15);
                 ctx.setLineDash([]);
             }
 
-            function drawSlantAsymptote(sa) {
-                ctx.strokeStyle = '#a855f7'; // purple-500
-                ctx.lineWidth = 1.5;
-                ctx.setLineDash([5, 5]);
-                
+            function drawSlantAsymptote(sa, isDark) {
+                const isHighlighted = highlightedAsymptote && highlightedAsymptote.type === 'slant';
+                ctx.strokeStyle = isHighlighted ? '#c084fc' : '#a855f7'; // brighter purple
+                ctx.lineWidth = isHighlighted ? 4 : 2;
+                ctx.setLineDash([6, 6]);
+
                 const y1 = sa.m * (0 - originX) / scale + sa.b;
                 const y2 = sa.m * (canvas.width - originX) / scale + sa.b;
+                const py1 = originY - y1 * scale, py2 = originY - y2 * scale;
                 
-                const px1 = 0;
-                const py1 = originY - y1 * scale;
-                const px2 = canvas.width;
-                const py2 = originY - y2 * scale;
+                ctx.beginPath(); ctx.moveTo(0, py1); ctx.lineTo(canvas.width, py2); ctx.stroke();
                 
-                ctx.beginPath();
-                ctx.moveTo(px1, py1);
-                ctx.lineTo(px2, py2);
-                ctx.stroke();
-                
-                ctx.fillStyle = '#a855f7';
-                ctx.font = '14px Be Vietnam Pro';
-                ctx.fillText(`y = ${sa.m.toFixed(2)}x + ${sa.b.toFixed(2)}`, canvas.width - 200, py2 + 20);
+                ctx.fillStyle = isHighlighted ? (isDark ? '#c084fc' : '#9333ea') : (isDark ? '#a855f7' : '#7e22ce');
+                ctx.font = isHighlighted ? 'bold 16px Be Vietnam Pro' : '15px Be Vietnam Pro';
+                ctx.fillText(`y = ${sa.m.toFixed(2)}x + ${sa.b.toFixed(2)}`, canvas.width - 220, py2 + (py2 < 50 ? 25 : -15));
                 ctx.setLineDash([]);
             }
-
+            
             function analyzeFunction(str) {
                 let f;
                 try {
@@ -338,33 +328,43 @@
                 const yPlusInf = f(limitTest);
                 const yMinusInf = f(-limitTest);
                 
-                if (Math.abs(yPlusInf) < limitTest && Math.abs(yPlusInf - yMinusInf) < 0.1) {
-                     calculatedAsymptotes.horizontal = yPlusInf;
+                if (isFinite(yPlusInf) && Math.abs(yPlusInf - yMinusInf) < 1) { // Looser tolerance for horizontal
+                     calculatedAsymptotes.horizontal = (yPlusInf + yMinusInf) / 2;
                 }
 
                 if (!('horizontal' in calculatedAsymptotes)) {
                     const m_plus = f(limitTest) / limitTest;
                     const m_minus = f(-limitTest) / (-limitTest);
 
-                    if (Math.abs(m_plus) > 1e-6 && Math.abs(m_plus) < limitTest && Math.abs(m_plus - m_minus) < 0.1) {
-                        const m = Math.round(m_plus);
+                    if (Math.abs(m_plus) > 1e-6 && isFinite(m_plus) && Math.abs(m_plus - m_minus) < 0.1) {
+                        // Heuristic: Coefficients are often simple numbers. Round to nearest 0.5 for stability.
+                        const m_avg = (m_plus + m_minus) / 2;
+                        const m = Math.round(m_avg * 2) / 2;
+
                         const b_plus = f(limitTest) - m * limitTest;
                         const b_minus = f(-limitTest) - m * (-limitTest);
                         
-                        if (Math.abs(b_plus) < limitTest && Math.abs(b_plus - b_minus) < 0.1) {
-                            const b = (b_plus + b_minus) / 2;
-                            calculatedAsymptotes.slant = { m, b };
+                        if (isFinite(b_plus) && Math.abs(b_plus - b_minus) < 1) { // Looser tolerance for b
+                            const b_avg = (b_plus + b_minus) / 2;
+                            const b = Math.round(b_avg * 2) / 2;
+                            
+                            if (m !== 0) {
+                                 calculatedAsymptotes.slant = { m, b };
+                            } else if (calculatedAsymptotes.horizontal === undefined) {
+                                 calculatedAsymptotes.horizontal = b;
+                            }
                         }
                     }
                 }
                 
                 let vas = [];
-                let lastY = f(-10);
-                for(let x = -10; x <= 10; x+=0.01) {
-                    let currentY = f(x);
-                    if(Math.abs(currentY) > 50 && Math.sign(currentY) !== Math.sign(lastY)) {
+                let lastY = f(-20);
+                for(let x = -20; x <= 20; x+=0.01) {
+                    let currentY;
+                    try { currentY = f(x); } catch(e){ continue; }
+                    if((isFinite(lastY) && !isFinite(currentY)) || (Math.abs(currentY) > 100 && Math.sign(currentY) !== Math.sign(lastY))) {
                         let x0 = parseFloat(x.toFixed(2));
-                        if (!vas.includes(x0)) vas.push(x0);
+                         if (!vas.some(v => Math.abs(v - x0) < 0.1)) vas.push(x0);
                     }
                     lastY = currentY;
                 }
@@ -376,36 +376,41 @@
             function updateResultsUI(asymptotes) {
                 resultsDiv.innerHTML = '';
                 if (Object.keys(asymptotes).length === 0 && !func) {
-                    resultsDiv.innerHTML = '<p class="text-gray-500">Chưa có phân tích.</p>';
-                    return;
+                    resultsDiv.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Chưa có phân tích.</p>'; return;
                 }
-
                 let hasAsymptote = false;
+                const addHighlightListeners = (elem, type, value) => {
+                    elem.addEventListener('mouseover', () => { highlightedAsymptote = {type, value}; draw(); });
+                    elem.addEventListener('mouseout', () => { highlightedAsymptote = null; draw(); });
+                };
 
                 if (asymptotes.vertical && asymptotes.vertical.length > 0 && showVerticalCheck.checked) {
                     hasAsymptote = true;
-                    const p = document.createElement('p');
-                    p.innerHTML = `<strong>Tiệm cận đứng: </strong> <span class="text-red-600 font-semibold">${asymptotes.vertical.map(x => `x = ${x}`).join(', ')}</span>`;
-                    resultsDiv.appendChild(p);
+                    asymptotes.vertical.forEach(x0 => {
+                        const p = document.createElement('p');
+                        p.className = 'p-2 rounded-md cursor-pointer transition hover:bg-gray-100 dark:hover:bg-slate-700';
+                        p.innerHTML = `<strong>Tiệm cận đứng: </strong> <span class="text-red-600 dark:text-red-400 font-semibold">x = ${x0}</span>`;
+                        resultsDiv.appendChild(p);
+                        addHighlightListeners(p, 'vertical', x0);
+                    });
                 }
-                
                 if (asymptotes.horizontal !== undefined && isFinite(asymptotes.horizontal) && showHorizontalCheck.checked) {
                     hasAsymptote = true;
                     const p = document.createElement('p');
-                    p.innerHTML = `<strong>Tiệm cận ngang: </strong> <span class="text-green-600 font-semibold">y = ${asymptotes.horizontal.toFixed(4)}</span>`;
+                    p.className = 'p-2 rounded-md cursor-pointer transition hover:bg-gray-100 dark:hover:bg-slate-700';
+                    p.innerHTML = `<strong>Tiệm cận ngang: </strong> <span class="text-green-600 dark:text-green-400 font-semibold">y = ${asymptotes.horizontal.toFixed(4)}</span>`;
                     resultsDiv.appendChild(p);
+                    addHighlightListeners(p, 'horizontal', asymptotes.horizontal);
                 }
-
                 if (asymptotes.slant && showSlantCheck.checked) {
                     hasAsymptote = true;
                     const p = document.createElement('p');
-                    p.innerHTML = `<strong>Tiệm cận xiên: </strong> <span class="text-purple-600 font-semibold">y = ${asymptotes.slant.m.toFixed(2)}x + ${asymptotes.slant.b.toFixed(2)}</span>`;
+                    p.className = 'p-2 rounded-md cursor-pointer transition hover:bg-gray-100 dark:hover:bg-slate-700';
+                    p.innerHTML = `<strong>Tiệm cận xiên: </strong> <span class="text-purple-600 dark:text-purple-400 font-semibold">y = ${asymptotes.slant.m.toFixed(2)}x + ${asymptotes.slant.b.toFixed(2)}</span>`;
                     resultsDiv.appendChild(p);
+                    addHighlightListeners(p, 'slant', asymptotes.slant);
                 }
-
-                if (!hasAsymptote) {
-                     resultsDiv.innerHTML = '<p class="text-gray-600">Không tìm thấy tiệm cận phù hợp với các tùy chọn.</p>';
-                }
+                if (!hasAsymptote) { resultsDiv.innerHTML = '<p class="text-gray-600 dark:text-gray-400">Không tìm thấy tiệm cận.</p>'; }
             }
             
             function handleDraw() {
@@ -416,46 +421,66 @@
                 draw();
             }
             
-            function setExample(exampleFunc) {
-                functionInput.value = exampleFunc;
-                handleDraw();
-            }
-
+            function setExample(exampleFunc) { functionInput.value = exampleFunc; handleDraw(); }
             function openWolframAlpha() {
-                const funcStr = functionInput.value;
-                if (!funcStr.trim()) {
-                    return;
-                }
-                const query = `plot and asymptotes of y = ${funcStr}`;
-                const encodedQuery = encodeURIComponent(query);
-                const url = `https://www.wolframalpha.com/input?i=${encodedQuery}`;
-                window.open(url, '_blank');
+                if (!functionInput.value.trim()) return;
+                const query = `plot and asymptotes of y = ${functionInput.value}`;
+                window.open(`https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}`, '_blank');
             }
 
             // Event Listeners
             drawButton.addEventListener('click', handleDraw);
             wolframButton.addEventListener('click', openWolframAlpha);
+            resetViewBtn.addEventListener('click', resetView);
             
             example1Btn.addEventListener('click', () => setExample('(2*x-3)/(x+1)'));
             example2Btn.addEventListener('click', () => setExample('(x**2 - 3*x + 2)/(x-1)'));
             example3Btn.addEventListener('click', () => setExample('(x-2)/(x**2-1)'));
             example4Btn.addEventListener('click', () => setExample('(x**2+x)/(x-1)'));
 
-            functionInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleDraw();
-                }
+            functionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleDraw(); });
+            [showVerticalCheck, showHorizontalCheck, showSlantCheck].forEach(check => {
+                check.addEventListener('change', () => { updateResultsUI(asymptotes); draw(); });
+            });
+            window.addEventListener('resize', () => { initialOriginX = null; resizeCanvas(); draw(); });
+
+            // Panning, Zooming, Dark Mode
+            canvas.addEventListener('mousedown', (e) => { isDragging = true; lastMouseX = e.offsetX; lastMouseY = e.offsetY; canvas.style.cursor = 'grabbing'; });
+            canvas.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+            canvas.addEventListener('mouseleave', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                originX += e.offsetX - lastMouseX;
+                originY += e.offsetY - lastMouseY;
+                lastMouseX = e.offsetX;
+                lastMouseY = e.offsetY;
+                draw();
+            });
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomIntensity = 0.1, mouseX = e.offsetX, mouseY = e.offsetY;
+                const worldX = (mouseX - originX) / scale, worldY = (originY - mouseY) / scale;
+                const direction = e.deltaY < 0 ? 1 : -1;
+                const newScale = scale * (1 + direction * zoomIntensity);
+                if (newScale < 5 || newScale > 500) return;
+                scale = newScale;
+                originX = mouseX - worldX * scale;
+                originY = mouseY + worldY * scale;
+                draw();
             });
             
-            [showVerticalCheck, showHorizontalCheck, showSlantCheck].forEach(check => {
-                check.addEventListener('change', () => {
-                     updateResultsUI(asymptotes);
-                     draw();
-                });
-            });
-
-            window.addEventListener('resize', () => {
-                resizeCanvas();
+            // Dark Mode Logic
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                darkModeToggle.checked = true;
+            }
+            darkModeToggle.addEventListener('change', () => {
+                if (darkModeToggle.checked) {
+                    document.documentElement.classList.add('dark');
+                    localStorage.theme = 'dark';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.theme = 'light';
+                }
                 draw();
             });
 
@@ -466,3 +491,4 @@
     </script>
 </body>
 </html>
+
